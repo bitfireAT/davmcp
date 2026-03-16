@@ -40,7 +40,7 @@ class AddEventTool {
         val title: String,
         val startDateTime: String,
         val endDateTime: String,
-        val description: String?
+        val description: String? = null
     )
 
     private data class EventData(
@@ -80,7 +80,13 @@ class AddEventTool {
     
     suspend fun handler(connection: ClientConnection, request: CallToolRequest): CallToolResult {
         try {
-            val eventRequest = Json.decodeFromJsonElement<EventRequest>(
+            val json = Json {
+                ignoreUnknownKeys = true
+                isLenient = true
+                explicitNulls = false
+            }
+            
+            val eventRequest = json.decodeFromJsonElement<EventRequest>(
                 request.arguments ?: throw IllegalArgumentException("Request arguments are required")
             )
 
