@@ -1,15 +1,11 @@
 package at.bitfire.labs.davmcp.tools
 
-import at.bitfire.dav4jvm.ktor.DavCalendar
 import io.ktor.client.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.put
-import io.ktor.client.request.setBody
-import io.ktor.client.request.url
+import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.utils.io.*
 import io.modelcontextprotocol.kotlin.sdk.server.ClientConnection
 import io.modelcontextprotocol.kotlin.sdk.types.*
 import kotlinx.serialization.Serializable
@@ -40,14 +36,16 @@ class AddEventTool {
         val title: String,
         val startDateTime: String,
         val endDateTime: String,
-        val description: String? = null
+        val description: String? = null,
+        val location: String? = null
     )
 
     private data class EventData(
         val summary: String,
         val startDate: LocalDateTime,
         val endDate: LocalDateTime,
-        val description: String?
+        val description: String?,
+        val location: String?
     )
 
     fun tool() = Tool(
@@ -73,6 +71,10 @@ class AddEventTool {
                     put("type", "string")
                     put("description", "Optional description of the event (plain text)")
                 })
+                put("location", buildJsonObject {
+                    put("type", "string")
+                    put("description", "Optional location of the event")
+                })
             },
             required = listOf("title", "startDateTime", "endDateTime")
         )
@@ -95,7 +97,8 @@ class AddEventTool {
                 summary = eventRequest.title,
                 startDate = LocalDateTime.parse(eventRequest.startDateTime, dateTimeFormatter),
                 endDate = LocalDateTime.parse(eventRequest.endDateTime, dateTimeFormatter),
-                description = eventRequest.description
+                description = eventRequest.description,
+                location = eventRequest.location
             )
 
             val uid = UUID.randomUUID().toString()
@@ -124,6 +127,7 @@ class AddEventTool {
         event += DtStart(eventData.startDate)
         event += DtEnd(eventData.endDate)
         event += Summary(eventData.summary)
+        event += Location(eventData.location)
 
         if (eventData.description != null) {
             event += Description(eventData.description)
