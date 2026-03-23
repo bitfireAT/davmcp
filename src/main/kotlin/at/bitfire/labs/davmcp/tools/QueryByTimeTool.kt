@@ -2,6 +2,7 @@ package at.bitfire.labs.davmcp.tools
 
 import at.bitfire.dav4jvm.ktor.DavCalendar
 import at.bitfire.dav4jvm.ktor.Response
+import at.bitfire.dav4jvm.property.caldav.CalendarData
 import at.bitfire.labs.davmcp.DavConfig
 import io.ktor.client.*
 import io.ktor.client.plugins.auth.*
@@ -66,6 +67,7 @@ class QueryByTimeTool @Inject constructor(
                 }
             }
             install(Logging) {
+                level = LogLevel.ALL
                 logger = Logger.SIMPLE
             }
         }.use { client ->
@@ -80,8 +82,11 @@ class QueryByTimeTool @Inject constructor(
                 if (relation != Response.HrefRelation.MEMBER)
                     return@calendarQuery
 
+                val calendarData = response[CalendarData::class.java]?.iCalendar
+
                 result += EventResult(
-                    fileName = response.hrefName()
+                    fileName = response.hrefName(),
+                    iCal = calendarData
                 )
             }
             val json = buildJsonObject {
@@ -102,7 +107,8 @@ class QueryByTimeTool @Inject constructor(
 
     @Serializable
     data class EventResult(
-        val fileName: String?
+        val fileName: String?,
+        val iCal: String?
     )
 
 }
