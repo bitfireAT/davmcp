@@ -12,7 +12,6 @@ import io.modelcontextprotocol.kotlin.sdk.server.mcpStreamableHttp
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
 import io.modelcontextprotocol.kotlin.sdk.types.McpJson
 import io.modelcontextprotocol.kotlin.sdk.types.ServerCapabilities
-import kotlin.jvm.JvmSuppressWildcards
 import javax.inject.Inject
 
 class McpServer @Inject constructor(
