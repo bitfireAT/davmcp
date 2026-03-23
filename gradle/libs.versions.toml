@@ -1,6 +1,6 @@
 [versions]
-kotlin = "2.2.0"
-ksp = "2.2.0-2.0.2"
+kotlin = "2.3.20"
+ksp = "2.3.6"
 ktor = "3.4.1"
 dagger = "2.56.2"
 dav4jvm = "59ab44eb6e"
