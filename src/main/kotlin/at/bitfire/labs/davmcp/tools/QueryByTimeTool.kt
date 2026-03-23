@@ -30,14 +30,14 @@ class QueryByTimeTool @Inject constructor(
                     put("type", "integer")
                     put(
                         "description",
-                        "Only events with recurrences on or after this UNIX timestamp will be returned. Optional."
+                        "Optional UNIX timestamp in seconds. Only events with recurrences on or after this timestamp will be returned. Example: 1711154400 for Sat Mar 23 2024 00:40:00 GMT+0000"
                     )
                 })
                 put("end", buildJsonObject {
                     put("type", "integer")
                     put(
                         "description",
-                        "Only events with recurrences before this UNIX timestamp will be returned. Optional."
+                        "Optional UNIX timestamp in seconds. Only events with recurrences before this timestamp will be returned."
                     )
                 })
             },
@@ -54,6 +54,7 @@ class QueryByTimeTool @Inject constructor(
         val queryRequest = json.decodeFromJsonElement<QueryByTimeRequest>(
             request.arguments ?: throw IllegalArgumentException("Request arguments are required")
         )
+        System.err.println("QueryByTime: $queryRequest")
 
         val authUsername = config.username
         val authPassword = config.password
@@ -75,7 +76,9 @@ class QueryByTimeTool @Inject constructor(
             val calendar = DavCalendar(client, url)
 
             val start: Instant? = queryRequest.start?.let { Instant.ofEpochSecond(it) }
-            val end: Instant? = queryRequest.start?.let { Instant.ofEpochSecond(it) }
+            val end: Instant? = queryRequest.end?.let { Instant.ofEpochSecond(it) }
+
+            val b = StringBuilder()
 
             val result = mutableListOf<EventResult>()
             calendar.calendarQuery(Component.VEVENT, start, end) { response, relation ->
@@ -83,6 +86,10 @@ class QueryByTimeTool @Inject constructor(
                     return@calendarQuery
 
                 val calendarData = response[CalendarData::class.java]?.iCalendar
+                if (calendarData != null) {
+                    b.append(calendarData)
+                    b.append("---")
+                }
 
                 result += EventResult(
                     fileName = response.hrefName(),
@@ -92,7 +99,7 @@ class QueryByTimeTool @Inject constructor(
             val json = buildJsonObject {
                 put("events", json.encodeToJsonElement(result))
             }
-            return CallToolResult.success("Success", json)
+            return CallToolResult.success(b.toString(), json)
         }
 
         //return CallToolResult.error("Unknown error")
