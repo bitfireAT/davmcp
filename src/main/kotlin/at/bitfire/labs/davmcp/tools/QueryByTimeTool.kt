@@ -85,6 +85,8 @@ class QueryByTimeTool @Inject constructor(
                 if (relation != Response.HrefRelation.MEMBER)
                     return@calendarQuery
 
+                // TODO: actually query calendarData
+
                 val calendarData = response[CalendarData::class.java]?.iCalendar
                 if (calendarData != null) {
                     b.append(calendarData)
