@@ -6,6 +6,10 @@ import at.bitfire.dav4jvm.property.caldav.CalDAV
 import at.bitfire.dav4jvm.property.caldav.CalendarData
 import at.bitfire.labs.davmcp.DavConfig
 import at.bitfire.labs.davmcp.HttpClientBuilder
+import at.bitfire.labs.davmcp.LenientJson
+import at.bitfire.labs.davmcp.icalendar.SimpleConverter
+import at.bitfire.labs.davmcp.icalendar.SimpleEvent
+import at.bitfire.labs.davmcp.icalendar.simpleEventSchema
 import io.ktor.http.*
 import io.modelcontextprotocol.kotlin.sdk.server.ClientConnection
 import io.modelcontextprotocol.kotlin.sdk.types.*
@@ -18,7 +22,8 @@ import javax.inject.Inject
 
 class QueryByTimeTool @Inject constructor(
     private val config: DavConfig,
-    private val httpClientBuilder: HttpClientBuilder
+    private val httpClientBuilder: HttpClientBuilder,
+    private val simpleConverter: SimpleConverter
 ) : McpTool {
 
     private val logger
@@ -34,7 +39,7 @@ class QueryByTimeTool @Inject constructor(
                     put("format", "date-time")
                     put(
                         "description",
-                        "Optional start date-time. Only events with recurrences on or after this timestamp will be returned."
+                        "Optional start date-time (RFC 3339 format). Only events with recurrences on or after this timestamp will be returned."
                     )
                 })
                 put("end", buildJsonObject {
@@ -42,22 +47,27 @@ class QueryByTimeTool @Inject constructor(
                     put("format", "date-time")
                     put(
                         "description",
-                        "Optional end date-time. Only events with recurrences before this timestamp will be returned."
+                        "Optional end date-time (RFC 3339 format). Only events with recurrences before this timestamp will be returned."
                     )
                 })
             },
             required = listOf()
         ),
-        //outputSchema = ToolSchema()
+        outputSchema = ToolSchema(
+            properties = buildJsonObject {
+                put("events", buildJsonObject {
+                    put("type", "array")
+                    put("items", buildJsonObject {
+                        simpleEventSchema()
+                    })
+                })
+            },
+            required = listOf("events")
+        )
     )
 
     override suspend fun handler(connection: ClientConnection, request: CallToolRequest): CallToolResult {
-        val json = Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-            explicitNulls = false
-        }
-        val queryRequest = json.decodeFromJsonElement<QueryByTimeRequest>(
+        val queryRequest = LenientJson.decodeFromJsonElement<QueryByTimeRequest>(
             request.arguments ?: throw IllegalArgumentException("Request arguments are required")
         )
         logger.info("QueryByTime: $queryRequest")
@@ -69,28 +79,21 @@ class QueryByTimeTool @Inject constructor(
             val start: Instant? = queryRequest.start?.let { Instant.parse(it) }
             val end: Instant? = queryRequest.end?.let { Instant.parse(it) }
 
-            val b = StringBuilder()
-
-            val result = mutableListOf<EventResult>()
+            val events = mutableListOf<SimpleEvent>()
             calendar.calendarQuery(Component.VEVENT, start, end, setOf(CalDAV.CalendarData)) { response, relation ->
                 if (relation != Response.HrefRelation.MEMBER)
                     return@calendarQuery
 
-                val calendarData = response[CalendarData::class.java]?.iCalendar
-                if (calendarData != null) {
-                    b.append(calendarData)
-                    b.append("---")
-                }
-
-                result += EventResult(
-                    fileName = response.hrefName(),
-                    iCal = calendarData
-                )
+                val calendarData = response[CalendarData::class.java]?.iCalendar ?: return@calendarQuery
+                val event = simpleConverter.convert(response.hrefName(), calendarData)
+                if (event != null)
+                    events += event
             }
-            val json = buildJsonObject {
-                put("events", json.encodeToJsonElement(result))
-            }
-            return CallToolResult.success(b.toString(), json)
+            return CallToolResult(
+                content = listOf(TextContent(LenientJson.encodeToString(events))),
+                isError = false,
+                structuredContent = LenientJson.encodeToJsonElement(Result(events)).jsonObject
+            ).also { logger.info("Result: $it") }
         }
 
         //return CallToolResult.error("Unknown error")
@@ -104,9 +107,10 @@ class QueryByTimeTool @Inject constructor(
     )
 
     @Serializable
-    data class EventResult(
-        val fileName: String?,
-        val iCal: String?
-    )
+    data class Result(
+        val events: List<SimpleEvent>
+    ) {
+
+    }
 
 }
