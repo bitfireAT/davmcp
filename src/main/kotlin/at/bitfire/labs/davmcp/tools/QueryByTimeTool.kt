@@ -2,6 +2,7 @@ package at.bitfire.labs.davmcp.tools
 
 import at.bitfire.dav4jvm.ktor.DavCalendar
 import at.bitfire.dav4jvm.ktor.Response
+import at.bitfire.dav4jvm.property.caldav.CalDAV
 import at.bitfire.dav4jvm.property.caldav.CalendarData
 import at.bitfire.labs.davmcp.DavConfig
 import at.bitfire.labs.davmcp.HttpClientBuilder
@@ -71,11 +72,9 @@ class QueryByTimeTool @Inject constructor(
             val b = StringBuilder()
 
             val result = mutableListOf<EventResult>()
-            calendar.calendarQuery(Component.VEVENT, start, end) { response, relation ->
+            calendar.calendarQuery(Component.VEVENT, start, end, setOf(CalDAV.CalendarData)) { response, relation ->
                 if (relation != Response.HrefRelation.MEMBER)
                     return@calendarQuery
-
-                // TODO: actually query calendarData
 
                 val calendarData = response[CalendarData::class.java]?.iCalendar
                 if (calendarData != null) {
