@@ -2,9 +2,14 @@ package at.bitfire.labs.davmcp.tools
 
 import at.bitfire.dav4jvm.ktor.DavCalendar
 import at.bitfire.dav4jvm.ktor.Response
+import at.bitfire.dav4jvm.property.caldav.CalDAV
 import at.bitfire.dav4jvm.property.caldav.CalendarData
 import at.bitfire.labs.davmcp.DavConfig
 import at.bitfire.labs.davmcp.HttpClientBuilder
+import at.bitfire.labs.davmcp.LenientJson
+import at.bitfire.labs.davmcp.icalendar.SimpleConverter
+import at.bitfire.labs.davmcp.icalendar.SimpleEvent
+import at.bitfire.labs.davmcp.icalendar.simpleEventSchema
 import io.ktor.http.*
 import io.modelcontextprotocol.kotlin.sdk.server.ClientConnection
 import io.modelcontextprotocol.kotlin.sdk.types.*
@@ -12,12 +17,17 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import net.fortuna.ical4j.model.Component
 import java.time.Instant
+import java.util.logging.Logger
 import javax.inject.Inject
 
 class QueryByTimeTool @Inject constructor(
     private val config: DavConfig,
-    private val httpClientBuilder: HttpClientBuilder
+    private val httpClientBuilder: HttpClientBuilder,
+    private val simpleConverter: SimpleConverter
 ) : McpTool {
+
+    private val logger
+        get() = Logger.getLogger(javaClass.name)
 
     override fun tool() = Tool(
         name = "events.queryByTime",
@@ -25,66 +35,65 @@ class QueryByTimeTool @Inject constructor(
         inputSchema = ToolSchema(
             properties = buildJsonObject {
                 put("start", buildJsonObject {
-                    put("type", "integer")
+                    put("type", "string")
+                    put("format", "date-time")
                     put(
                         "description",
-                        "Optional UNIX timestamp in seconds. Only events with recurrences on or after this timestamp will be returned. Example: 1711154400 for Sat Mar 23 2024 00:40:00 GMT+0000"
+                        "Optional start date-time (RFC 3339 format). Only events with recurrences on or after this timestamp will be returned."
                     )
                 })
                 put("end", buildJsonObject {
-                    put("type", "integer")
+                    put("type", "string")
+                    put("format", "date-time")
                     put(
                         "description",
-                        "Optional UNIX timestamp in seconds. Only events with recurrences before this timestamp will be returned."
+                        "Optional end date-time (RFC 3339 format). Only events with recurrences before this timestamp will be returned."
                     )
                 })
             },
             required = listOf()
+        ),
+        outputSchema = ToolSchema(
+            properties = buildJsonObject {
+                put("events", buildJsonObject {
+                    put("type", "array")
+                    put("items", buildJsonObject {
+                        simpleEventSchema()
+                    })
+                })
+            },
+            required = listOf("events")
         )
     )
 
     override suspend fun handler(connection: ClientConnection, request: CallToolRequest): CallToolResult {
-        val json = Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-            explicitNulls = false
-        }
-        val queryRequest = json.decodeFromJsonElement<QueryByTimeRequest>(
+        val queryRequest = LenientJson.decodeFromJsonElement<QueryByTimeRequest>(
             request.arguments ?: throw IllegalArgumentException("Request arguments are required")
         )
-        System.err.println("QueryByTime: $queryRequest")
+        logger.info("QueryByTime: $queryRequest")
 
         httpClientBuilder.buildFromConfig().use { client ->
             val url = Url(config.calendarUrl)
             val calendar = DavCalendar(client, url)
 
-            val start: Instant? = queryRequest.start?.let { Instant.ofEpochSecond(it) }
-            val end: Instant? = queryRequest.end?.let { Instant.ofEpochSecond(it) }
+            val start: Instant? = queryRequest.start?.let { Instant.parse(it) }
+            val end: Instant? = queryRequest.end?.let { Instant.parse(it) }
 
-            val b = StringBuilder()
-
-            val result = mutableListOf<EventResult>()
-            calendar.calendarQuery(Component.VEVENT, start, end) { response, relation ->
+            val events = mutableListOf<SimpleEvent>()
+            calendar.calendarQuery(Component.VEVENT, start, end, setOf(CalDAV.CalendarData)) { response, relation ->
                 if (relation != Response.HrefRelation.MEMBER)
                     return@calendarQuery
 
-                // TODO: actually query calendarData
-
-                val calendarData = response[CalendarData::class.java]?.iCalendar
-                if (calendarData != null) {
-                    b.append(calendarData)
-                    b.append("---")
-                }
-
-                result += EventResult(
-                    fileName = response.hrefName(),
-                    iCal = calendarData
-                )
+                val calendarData = response[CalendarData::class.java]?.iCalendar ?: return@calendarQuery
+                val event = simpleConverter.convert(response.hrefName(), calendarData)
+                if (event != null)
+                    events += event
             }
-            val json = buildJsonObject {
-                put("events", json.encodeToJsonElement(result))
-            }
-            return CallToolResult.success(b.toString(), json)
+            return CallToolResult(
+                content = listOf(TextContent(LenientJson.encodeToString(events))),
+                isError = false,
+                structuredContent = LenientJson.encodeToJsonElement(Result(events)).jsonObject
+            ).also { logger.info("Result: $it") }
         }
 
         //return CallToolResult.error("Unknown error")
@@ -93,14 +102,15 @@ class QueryByTimeTool @Inject constructor(
 
     @Serializable
     data class QueryByTimeRequest(
-        val start: Long?,
-        val end: Long?
+        val start: String?,
+        val end: String?
     )
 
     @Serializable
-    data class EventResult(
-        val fileName: String?,
-        val iCal: String?
-    )
+    data class Result(
+        val events: List<SimpleEvent>
+    ) {
+
+    }
 
 }
