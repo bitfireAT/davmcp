@@ -23,6 +23,7 @@ data class SimpleEvent(
     val endDate: LocalDate?,
     val location: String?,
     val description: String?,
+    val consumesTime: Boolean = true,
     val iCalendar: String?,
 )
 
@@ -67,6 +68,14 @@ fun JsonObjectBuilder.simpleEventSchema(
         put("description", buildJsonObject {
             put("type", "string")
             put("description", "Event description (DESCRIPTION)")
+        })
+        put("consumesTime", buildJsonObject {
+            put("type", "boolean")
+            put(
+                "description",
+                "Whether the event consumes time in the user's calendar (true) or it's shown as free time (false). (TRANSP:OPAQUE/TRANSPARENT)"
+            )
+            put("default", "true")
         })
 
         if (includeICalendar)

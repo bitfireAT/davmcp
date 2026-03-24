@@ -7,6 +7,7 @@ import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.component.CalendarComponent
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.*
+import net.fortuna.ical4j.model.property.immutable.ImmutableTransp
 import net.fortuna.ical4j.model.property.immutable.ImmutableVersion
 import java.io.StringReader
 import java.io.StringWriter
@@ -35,6 +36,7 @@ class SimpleEventConverter {
             endDate = dtEnd as? LocalDate,
             location = vEvent.location?.value,
             description = vEvent.description?.value,
+            consumesTime = vEvent.timeTransparency == ImmutableTransp.OPAQUE,
             iCalendar = iCalendar
         )
     }
@@ -83,6 +85,10 @@ class SimpleEventConverter {
             vEvent += Location(eventData.location)
         if (eventData.description != null)
             vEvent += Description(eventData.description)
+        if (eventData.consumesTime)
+            vEvent += ImmutableTransp.OPAQUE
+        else
+            vEvent += ImmutableTransp.TRANSPARENT
 
         // convert calendar to iCalendar string
         val writer = StringWriter()
@@ -98,6 +104,7 @@ class SimpleEventConverter {
             "endDateTime", "endDate" -> setOf(Property.DTEND, Property.SUMMARY)
             "location" -> setOf(Property.LOCATION)
             "description" -> setOf(Property.DESCRIPTION)
+            "consumesTime" -> setOf(Property.TRANSP)
             else -> emptySet()
         }
 
