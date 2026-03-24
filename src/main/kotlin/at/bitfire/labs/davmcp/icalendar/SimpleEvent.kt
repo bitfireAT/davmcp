@@ -23,7 +23,9 @@ data class SimpleEvent(
     val startDateTime: Instant?,
     val startDate: LocalDate?,
     val endDateTime: Instant?,
-    val endDate: LocalDate?
+    val endDate: LocalDate?,
+    val location: String?,
+    val description: String?
 )
 
 fun JsonObjectBuilder.simpleEventSchema() {
@@ -60,6 +62,14 @@ fun JsonObjectBuilder.simpleEventSchema() {
             put("type", "string")
             put("format", "date")
             put("description", "End date of the event")
+        })
+        put("location", buildJsonObject {
+            put("type", "string")
+            put("description", "Event location (LOCATION)")
+        })
+        put("description", buildJsonObject {
+            put("type", "string")
+            put("description", "Event description (DESCRIPTION)")
         })
     })
     //put("required", json.encodeToJsonElement(listOf("fileName", "iCal")))

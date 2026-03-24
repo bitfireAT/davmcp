@@ -27,7 +27,9 @@ class SimpleEventConverter {
             startDateTime = dtStart?.instantIfDateTime(),
             startDate = dtStart as? LocalDate,
             endDateTime = dtEnd?.instantIfDateTime(),
-            endDate = dtEnd as? LocalDate
+            endDate = dtEnd as? LocalDate,
+            location = vEvent.location?.value,
+            description = vEvent.description?.value
         )
     }
 
