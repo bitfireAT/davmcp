@@ -18,11 +18,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDavConfig(): ServerConfig = ServerConfig.fromEnvironment()
+    fun provideServerConfig(): ServerConfig = ServerConfig()
 
     @Provides
     @Singleton
-    fun provideHttpClientBuilder(config: ServerConfig): HttpClientBuilder = HttpClientBuilder(config)
+    fun provideHttpClientBuilder(): HttpClientBuilder = HttpClientBuilder()
 
     @Provides
     @Singleton

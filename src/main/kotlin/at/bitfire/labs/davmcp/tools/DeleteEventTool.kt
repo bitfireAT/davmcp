@@ -2,9 +2,8 @@ package at.bitfire.labs.davmcp.tools
 
 import at.bitfire.dav4jvm.ktor.DavResource
 import at.bitfire.labs.davmcp.HttpClientBuilder
-import at.bitfire.labs.davmcp.ServerConfig
+import at.bitfire.labs.davmcp.db.Database
 import at.bitfire.labs.davmcp.db.User
-import at.bitfire.labs.davmcp.icalendar.SimpleEventConverter
 import io.ktor.http.*
 import io.modelcontextprotocol.kotlin.sdk.server.ClientConnection
 import io.modelcontextprotocol.kotlin.sdk.types.*
@@ -16,9 +15,8 @@ import java.util.logging.Logger
 import javax.inject.Inject
 
 class DeleteEventTool @Inject constructor(
-    private val config: ServerConfig,
-    private val httpClientBuilder: HttpClientBuilder,
-    private val simpleConverter: SimpleEventConverter
+    private val database: Database,
+    private val httpClientBuilder: HttpClientBuilder
 ) : BaseMcpTool() {
 
     private val logger
@@ -52,8 +50,11 @@ class DeleteEventTool @Inject constructor(
         )
         logger.info("QueryByTimeTool: $input")
 
-        httpClientBuilder.buildFromConfig().use { client ->
-            val collectionUrl = Url(config.calendarUrl)
+        val service = database.serviceQueries.getByUserId(user.id).executeAsOne()
+        val collection = database.collectionQueries.getByService(service.id).executeAsOne()
+        val collectionUrl = Url(collection.url)
+
+        httpClientBuilder.buildFromService(service).use { client ->
             val url = URLBuilder(collectionUrl).appendPathSegments(input.fileName).build()
             logger.info("Deleting event $url")
 

@@ -6,6 +6,7 @@ import at.bitfire.dav4jvm.property.caldav.CalDAV
 import at.bitfire.dav4jvm.property.caldav.CalendarData
 import at.bitfire.labs.davmcp.HttpClientBuilder
 import at.bitfire.labs.davmcp.ServerConfig
+import at.bitfire.labs.davmcp.db.Database
 import at.bitfire.labs.davmcp.db.User
 import at.bitfire.labs.davmcp.icalendar.SimpleEvent
 import at.bitfire.labs.davmcp.icalendar.SimpleEventConverter
@@ -23,6 +24,7 @@ import javax.inject.Inject
 
 class QueryEventsByTimeTool @Inject constructor(
     private val config: ServerConfig,
+    private val database: Database,
     private val httpClientBuilder: HttpClientBuilder,
     private val simpleEventConverter: SimpleEventConverter
 ) : BaseMcpTool() {
@@ -86,9 +88,12 @@ class QueryEventsByTimeTool @Inject constructor(
         )
         logger.info("QueryByTimeTool: $input")
 
-        httpClientBuilder.buildFromConfig().use { client ->
-            val url = Url(config.calendarUrl)
-            val calendar = DavCalendar(client, url)
+        val service = database.serviceQueries.getByUserId(user.id).executeAsOne()
+        val collection = database.collectionQueries.getByService(service.id).executeAsOne()
+        val collectionUrl = Url(collection.url)
+
+        httpClientBuilder.buildFromService(service).use { client ->
+            val calendar = DavCalendar(client, collectionUrl)
 
             val start: Instant? = input.start?.let { Instant.parse(it) }
             val end: Instant? = input.end?.let { Instant.parse(it) }
