@@ -14,6 +14,22 @@ repositories {
     maven("https://jitpack.io")
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
+sqldelight {
+    databases {
+        register("Database") {
+            packageName.set("at.bitfire.labs.davmcp.db")
+        }
+    }
+}
+
+application {
+    mainClass.set("at.bitfire.labs.davmcp.MainKt")
+}
+
 dependencies {
     implementation(libs.dav4jvm)
     implementation(libs.bundles.ktor.client)
@@ -27,24 +43,8 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
-kotlin {
-    jvmToolchain(21)
-}
-
-sqldelight {
-    databases {
-        register("Database") {
-            packageName.set("at.bitfire.labs.davmcp.db")
-        }
-    }
-}
-
 tasks.test {
     useJUnitPlatform()
-}
-
-application {
-    mainClass.set("at.bitfire.labs.davmcp.MainKt")
 }
 
 tasks.register<Jar>("fatJar") {

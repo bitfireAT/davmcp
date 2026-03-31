@@ -1,8 +1,9 @@
 package at.bitfire.labs.davmcp.tools
 
 import at.bitfire.dav4jvm.ktor.DavResource
-import at.bitfire.labs.davmcp.DavConfig
 import at.bitfire.labs.davmcp.HttpClientBuilder
+import at.bitfire.labs.davmcp.ServerConfig
+import at.bitfire.labs.davmcp.db.User
 import at.bitfire.labs.davmcp.icalendar.SimpleEventConverter
 import io.ktor.http.*
 import io.modelcontextprotocol.kotlin.sdk.server.ClientConnection
@@ -15,7 +16,7 @@ import java.util.logging.Logger
 import javax.inject.Inject
 
 class DeleteEventTool @Inject constructor(
-    private val config: DavConfig,
+    private val config: ServerConfig,
     private val httpClientBuilder: HttpClientBuilder,
     private val simpleConverter: SimpleEventConverter
 ) : BaseMcpTool() {
@@ -45,7 +46,7 @@ class DeleteEventTool @Inject constructor(
         )
     )
 
-    override suspend fun handle(connection: ClientConnection, request: CallToolRequest): CallToolResult {
+    override suspend fun handle(connection: ClientConnection, user: User, request: CallToolRequest): CallToolResult {
         val input = McpJson.decodeFromJsonElement<InputData>(
             request.arguments ?: throw IllegalArgumentException("Request arguments are required")
         )

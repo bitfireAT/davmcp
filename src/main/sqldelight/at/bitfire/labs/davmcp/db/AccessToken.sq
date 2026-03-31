@@ -7,3 +7,6 @@ CREATE TABLE accessToken (
 
 CREATE INDEX accessToken_userId ON accessToken(userId);
 CREATE INDEX accessToken_token ON accessToken(token);
+
+getUserIdByToken:
+SELECT userId FROM accessToken WHERE token=?;

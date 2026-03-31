@@ -1,7 +1,8 @@
 package at.bitfire.labs.davmcp.di
 
-import at.bitfire.labs.davmcp.DavConfig
 import at.bitfire.labs.davmcp.HttpClientBuilder
+import at.bitfire.labs.davmcp.ServerConfig
+import at.bitfire.labs.davmcp.db.Database
 import at.bitfire.labs.davmcp.icalendar.SimpleEventConverter
 import dagger.Module
 import dagger.Provides
@@ -12,11 +13,16 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDavConfig(): DavConfig = DavConfig.fromEnvironment()
+    fun provideDatabase(config: ServerConfig): Database =
+        Database(config.databaseDriver())
 
     @Provides
     @Singleton
-    fun provideHttpClientBuilder(config: DavConfig): HttpClientBuilder = HttpClientBuilder(config)
+    fun provideDavConfig(): ServerConfig = ServerConfig.fromEnvironment()
+
+    @Provides
+    @Singleton
+    fun provideHttpClientBuilder(config: ServerConfig): HttpClientBuilder = HttpClientBuilder(config)
 
     @Provides
     @Singleton

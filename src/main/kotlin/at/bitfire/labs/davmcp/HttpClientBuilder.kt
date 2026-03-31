@@ -7,7 +7,7 @@ import io.ktor.client.plugins.logging.*
 import javax.inject.Inject
 
 class HttpClientBuilder @Inject constructor(
-    private val config: DavConfig
+    private val config: ServerConfig
 ) {
 
     fun buildFromConfig(): HttpClient {
