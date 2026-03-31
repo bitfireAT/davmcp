@@ -2,7 +2,6 @@ package at.bitfire.labs.davmcp.tools
 
 import at.bitfire.dav4jvm.ktor.DavCalendar
 import at.bitfire.labs.davmcp.HttpClientBuilder
-import at.bitfire.labs.davmcp.ServerConfig
 import at.bitfire.labs.davmcp.db.Database
 import at.bitfire.labs.davmcp.db.User
 import at.bitfire.labs.davmcp.icalendar.SimpleEvent
@@ -22,7 +21,6 @@ import javax.inject.Inject
 import io.ktor.http.content.TextContent as KtorTextContent
 
 class AddEventTool @Inject constructor(
-    private val config: ServerConfig,
     private val database: Database,
     private val httpClientBuilder: HttpClientBuilder,
     private val simpleConverter: SimpleEventConverter
@@ -61,8 +59,10 @@ class AddEventTool @Inject constructor(
         val iCalendar = simpleConverter.toICalendar(event)
 
         val service = database.serviceQueries.getByUserId(user.id).executeAsOne()
+        val collection = database.collectionQueries.getByUser(user.id).executeAsOne()
+        val collectionUrl = Url(collection.url)
+
         httpClientBuilder.buildFromService(service).use { client ->
-            val collectionUrl = Url(config.calendarUrl)
             val url = URLBuilder(collectionUrl).appendPathSegments(fileName).build()
             logger.log(Level.INFO, "Uploading iCalendar to $url", iCalendar)
 
