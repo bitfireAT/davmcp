@@ -3,6 +3,7 @@ package at.bitfire.labs.davmcp.tools
 import at.bitfire.dav4jvm.ktor.DavResource
 import at.bitfire.labs.davmcp.HttpClientBuilder
 import at.bitfire.labs.davmcp.ServerConfig
+import at.bitfire.labs.davmcp.db.Database
 import at.bitfire.labs.davmcp.db.User
 import at.bitfire.labs.davmcp.icalendar.SimpleEvent
 import at.bitfire.labs.davmcp.icalendar.SimpleEventConverter
@@ -22,6 +23,7 @@ import javax.inject.Inject
 
 class UpdateEventTool @Inject constructor(
     private val config: ServerConfig,
+    private val database: Database,
     private val httpClientBuilder: HttpClientBuilder,
     private val simpleConverter: SimpleEventConverter
 ) : BaseMcpTool() {
@@ -77,7 +79,8 @@ class UpdateEventTool @Inject constructor(
         val collectionUrl = Url(config.calendarUrl)
         val eventUrl = URLBuilder(collectionUrl).appendPathSegments(input.fileName).build()
 
-        httpClientBuilder.buildFromConfig().use { client ->
+        val service = database.serviceQueries.getByUserId(user.id).executeAsOne()
+        httpClientBuilder.buildFromService(service).use { client ->
             val davResource = DavResource(client, eventUrl)
 
             // fetch existing event

@@ -1,0 +1,12 @@
+CREATE TABLE service (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    userId INTEGER NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    username TEXT DEFAULT NULL,
+    password TEXT DEFAULT NULL,
+    baseUrl TEXT DEFAULT NULL
+);
+
+CREATE INDEX service_userId ON service(userId);
+
+getByUserId:
+SELECT * FROM service WHERE userId=?;

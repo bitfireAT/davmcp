@@ -22,7 +22,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideHttpClientBuilder(config: ServerConfig): HttpClientBuilder = HttpClientBuilder(config)
+    fun provideHttpClientBuilder(): HttpClientBuilder = HttpClientBuilder()
 
     @Provides
     @Singleton

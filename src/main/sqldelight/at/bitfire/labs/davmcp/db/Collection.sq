@@ -1,0 +1,11 @@
+CREATE TABLE collection (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    userId INTEGER NOT NULL REFERENCES user(id) ON DELETE CASCADE,
+    url TEXT NOT NULL,
+    displayName TEXT DEFAULT NULL
+);
+
+CREATE INDEX collection_userId ON collection(userId);
+
+getByUser:
+SELECT * FROM collection WHERE userId=?;
