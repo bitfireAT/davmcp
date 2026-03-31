@@ -1,8 +1,9 @@
 package at.bitfire.labs.davmcp.tools
 
 import at.bitfire.dav4jvm.ktor.DavCalendar
-import at.bitfire.labs.davmcp.DavConfig
 import at.bitfire.labs.davmcp.HttpClientBuilder
+import at.bitfire.labs.davmcp.ServerConfig
+import at.bitfire.labs.davmcp.db.User
 import at.bitfire.labs.davmcp.icalendar.SimpleEvent
 import at.bitfire.labs.davmcp.icalendar.SimpleEventConverter
 import at.bitfire.labs.davmcp.icalendar.iCalendarContentType
@@ -20,7 +21,7 @@ import javax.inject.Inject
 import io.ktor.http.content.TextContent as KtorTextContent
 
 class AddEventTool @Inject constructor(
-    private val config: DavConfig,
+    private val config: ServerConfig,
     private val httpClientBuilder: HttpClientBuilder,
     private val simpleConverter: SimpleEventConverter
 ) : BaseMcpTool() {
@@ -46,7 +47,7 @@ class AddEventTool @Inject constructor(
         )
     )
 
-    override suspend fun handle(connection: ClientConnection, request: CallToolRequest): CallToolResult {
+    override suspend fun handle(connection: ClientConnection, user: User, request: CallToolRequest): CallToolResult {
         val input = McpJson.decodeFromJsonElement<InputData>(
             request.arguments ?: throw IllegalArgumentException("Request arguments are required")
         )

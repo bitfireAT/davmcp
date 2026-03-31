@@ -1,0 +1,10 @@
+CREATE TABLE user(
+    id INTEGER PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL
+);
+
+CREATE INDEX user_name ON user(email);
+
+getById:
+SELECT * FROM user WHERE id=?;

@@ -1,8 +1,9 @@
 plugins {
+    application
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
-    application
+    alias(libs.plugins.sqldelight)
 }
 
 group = "at.bitfire.labs"
@@ -13,6 +14,22 @@ repositories {
     maven("https://jitpack.io")
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
+sqldelight {
+    databases {
+        register("Database") {
+            packageName.set("at.bitfire.labs.davmcp.db")
+        }
+    }
+}
+
+application {
+    mainClass.set("at.bitfire.labs.davmcp.MainKt")
+}
+
 dependencies {
     implementation(libs.dav4jvm)
     implementation(libs.bundles.ktor.client)
@@ -21,20 +38,14 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ical4j)
     implementation(libs.dagger)
+    implementation(libs.sqldelight.sqlite.driver)
+    implementation(libs.slf4j.jdk14)
     ksp(libs.dagger.compiler)
     testImplementation(kotlin("test"))
 }
 
-kotlin {
-    jvmToolchain(21)
-}
-
 tasks.test {
     useJUnitPlatform()
-}
-
-application {
-    mainClass.set("at.bitfire.labs.davmcp.MainKt")
 }
 
 tasks.register<Jar>("fatJar") {

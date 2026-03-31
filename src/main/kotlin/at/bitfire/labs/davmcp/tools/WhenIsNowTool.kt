@@ -2,6 +2,7 @@
 
 package at.bitfire.labs.davmcp.tools
 
+import at.bitfire.labs.davmcp.db.User
 import at.bitfire.labs.davmcp.json.InstantSerializer
 import at.bitfire.labs.davmcp.json.McpJson
 import io.modelcontextprotocol.kotlin.sdk.server.ClientConnection
@@ -16,7 +17,7 @@ import java.time.Instant
 import java.util.logging.Logger
 import javax.inject.Inject
 
-class WhenIsNowTool @Inject constructor() : McpTool {
+class WhenIsNowTool @Inject constructor() : BaseMcpTool() {
 
     private val logger
         get() = Logger.getLogger(javaClass.name)
@@ -41,8 +42,9 @@ class WhenIsNowTool @Inject constructor() : McpTool {
         )
     )
 
-    override suspend fun handler(
+    override suspend fun handle(
         connection: ClientConnection,
+        user: User,
         request: CallToolRequest
     ): CallToolResult {
         val result = Result(
