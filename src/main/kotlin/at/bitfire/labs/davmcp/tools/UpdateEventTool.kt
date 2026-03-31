@@ -75,7 +75,7 @@ class UpdateEventTool @Inject constructor(
         logger.info("UpdateEventTool: $input")
 
         val service = database.serviceQueries.getByUserId(user.id).executeAsOne()
-        val collection = database.collectionQueries.getByUser(user.id).executeAsOne()
+        val collection = database.collectionQueries.getByService(service.id).executeAsOne()
         val collectionUrl = Url(collection.url)
         val eventUrl = URLBuilder(collectionUrl).appendPathSegments(input.fileName).build()
 

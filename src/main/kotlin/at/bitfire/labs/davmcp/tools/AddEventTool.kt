@@ -59,7 +59,7 @@ class AddEventTool @Inject constructor(
         val iCalendar = simpleConverter.toICalendar(event)
 
         val service = database.serviceQueries.getByUserId(user.id).executeAsOne()
-        val collection = database.collectionQueries.getByUser(user.id).executeAsOne()
+        val collection = database.collectionQueries.getByService(service.id).executeAsOne()
         val collectionUrl = Url(collection.url)
 
         httpClientBuilder.buildFromService(service).use { client ->

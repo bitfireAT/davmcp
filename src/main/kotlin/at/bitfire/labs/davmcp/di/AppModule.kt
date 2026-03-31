@@ -18,7 +18,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDavConfig(): ServerConfig = ServerConfig.fromEnvironment()
+    fun provideServerConfig(): ServerConfig = ServerConfig()
 
     @Provides
     @Singleton

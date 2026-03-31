@@ -89,9 +89,11 @@ class QueryEventsByTimeTool @Inject constructor(
         logger.info("QueryByTimeTool: $input")
 
         val service = database.serviceQueries.getByUserId(user.id).executeAsOne()
+        val collection = database.collectionQueries.getByService(service.id).executeAsOne()
+        val collectionUrl = Url(collection.url)
+
         httpClientBuilder.buildFromService(service).use { client ->
-            val url = Url(config.calendarUrl)
-            val calendar = DavCalendar(client, url)
+            val calendar = DavCalendar(client, collectionUrl)
 
             val start: Instant? = input.start?.let { Instant.parse(it) }
             val end: Instant? = input.end?.let { Instant.parse(it) }
