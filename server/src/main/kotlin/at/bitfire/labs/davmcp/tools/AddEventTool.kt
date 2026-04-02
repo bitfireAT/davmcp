@@ -80,7 +80,14 @@ class AddEventTool @Inject constructor(
                     newFileName = Url(newLocation).segments.last()
             }
 
-            return CallToolResult(content = listOf(TextContent("Success, file name of created event: $newFileName")))
+            return CallToolResult(
+                content = listOf(
+                    TextContent(
+                        "Success. File name of created event: $newFileName. " +
+                                "This file name can directly be used to edit or delete the event again, without need to query/fetch it first."
+                    )
+                )
+            )
         }
     }
 
