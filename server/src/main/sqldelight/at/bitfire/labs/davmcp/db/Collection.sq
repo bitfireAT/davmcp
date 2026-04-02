@@ -7,8 +7,10 @@ CREATE TABLE collection (
 
 CREATE INDEX collection_serviceId ON collection(serviceId);
 
-getById:
-SELECT * FROM collection WHERE id=?;
-
 getByService:
 SELECT * FROM collection WHERE serviceId=?;
+
+getByUserAndId:
+SELECT c.* FROM collection c
+JOIN service s ON c.serviceId = s.id
+WHERE c.id = ?1 AND s.userId = ?2;

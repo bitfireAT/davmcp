@@ -16,7 +16,7 @@ class SetDefaultCalendarTool @Inject constructor(
 ) : BaseMcpTool() {
 
     override fun tool() = Tool(
-        name = "calendar.setDefault",
+        name = "events.setDefaultCalendar",
         description = "Sets the default calendar collection that will be used when no specific collection is specified in event operations.",
         inputSchema = ToolSchema(
             properties = buildJsonObject {
@@ -39,18 +39,13 @@ class SetDefaultCalendarTool @Inject constructor(
             request.arguments ?: throw IllegalArgumentException("Request arguments are required")
         )
 
-        val service = database.serviceQueries.getByUserId(user.id).executeAsOne()
-
         // Verify the collection exists and belongs to this service
-        val collection = database.collectionQueries.getById(input.collectionId).executeAsOneOrNull()
+        val collection = database.collectionQueries.getByUserAndId(user.id, input.collectionId).executeAsOneOrNull()
             ?: throw IllegalArgumentException("Collection with id=${input.collectionId} not found")
 
-        if (collection.serviceId != service.id) {
-            throw IllegalArgumentException("Collection with id=${input.collectionId} does not belong to this service")
-        }
-
         // Update the default collection
-        database.serviceQueries.setDefaultCollection(input.collectionId, service.id)
+        val service = database.serviceQueries.getByUserId(user.id).executeAsOne()
+        database.serviceQueries.setDefaultCollection(collection.id, service.id)
 
         return CallToolResult(
             content = listOf(

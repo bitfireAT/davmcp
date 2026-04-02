@@ -30,17 +30,17 @@ abstract class BaseMcpTool : McpTool {
      * @throws IllegalStateException if no collection exists for the service at all
      */
     protected fun resolveCollection(database: Database, service: Service, specificId: Long?): Collection {
-        // specific collection requested
-        if (specificId != null)
-            return database.collectionQueries.getById(specificId).executeAsOneOrNull()
-                ?: throw IllegalArgumentException("Collection with id=$specificId not found")
+        // Determine which collection ID to use
+        val collectionId: Long =
+            // specific ID
+            specificId
+            // or default ID, if defined
+                ?: database.serviceQueries.getDefaultCollectionId(service.id).executeAsOneOrNull()?.defaultCollectionId
+                ?: throw IllegalStateException("No default calendar defined. Ask the user to set a default calendar and then try again.")
 
-        // find explicitly defined default collection
-        database.serviceQueries.getDefaultCollection(service.id).executeAsOneOrNull()?.let { return it }
-
-        // fall back to first collection
-        return database.collectionQueries.getByService(service.id).executeAsOneOrNull()
-            ?: throw IllegalStateException("No calendar collection found for service id=${service.id}.")
+        // Always verify the collection belongs to the user
+        return database.collectionQueries.getByUserAndId(service.userId, collectionId).executeAsOneOrNull()
+            ?: throw IllegalArgumentException("Collection with id=$collectionId not found")
     }
 
 
