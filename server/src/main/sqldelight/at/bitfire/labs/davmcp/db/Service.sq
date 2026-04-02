@@ -12,10 +12,8 @@ CREATE INDEX service_userId ON service(userId);
 getByUserId:
 SELECT * FROM service WHERE userId=?;
 
-getDefaultCollection:
-SELECT collection.* FROM collection
-JOIN service ON service.defaultCollectionId = collection.id
-WHERE service.id=?;
+getDefaultCollectionId:
+SELECT defaultCollectionId FROM service WHERE id=?;
 
 setDefaultCollection:
 UPDATE service SET defaultCollectionId=? WHERE id=?;

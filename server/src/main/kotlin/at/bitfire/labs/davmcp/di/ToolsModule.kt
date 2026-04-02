@@ -32,4 +32,8 @@ object ToolsModule {
     @IntoSet
     fun provideWhenIsNowTool(whenIsNowTool: WhenIsNowTool): McpTool = whenIsNowTool
 
+    @Provides
+    @IntoSet
+    fun provideSetDefaultCalendarTool(setDefaultCalendarTool: SetDefaultCalendarTool): McpTool = setDefaultCalendarTool
+
 }
