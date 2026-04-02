@@ -9,6 +9,7 @@ import at.bitfire.labs.davmcp.icalendar.SimpleEventConverter
 import at.bitfire.labs.davmcp.icalendar.iCalendarContentType
 import at.bitfire.labs.davmcp.icalendar.simpleEventSchema
 import collectionIdSchema
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -81,7 +82,9 @@ class UpdateEventTool @Inject constructor(
             val davResource = DavResource(client, eventUrl)
 
             // fetch existing event
-            val originalICalendar = client.get(eventUrl).bodyAsText()
+            val originalICalendar = client.get(eventUrl) {
+                expectSuccess = true
+            }.bodyAsText()
 
             // generate ICalendar with the updated fields, using the existing ICalendar as base
             val updatedEvent = simpleConverter.toICalendar(
