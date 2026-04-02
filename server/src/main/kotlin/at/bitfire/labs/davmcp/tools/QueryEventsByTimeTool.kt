@@ -37,6 +37,13 @@ class QueryEventsByTimeTool @Inject constructor(
         description = "Query events by time range",
         inputSchema = ToolSchema(
             properties = buildJsonObject {
+                put("collectionId", buildJsonObject {
+                    put("type", "number")
+                    put(
+                        "description",
+                        "Optional ID of the calendar collection to query. Defaults to the user's default calendar. Use collections.list to discover available collections."
+                    )
+                })
                 put("start", buildJsonObject {
                     put("type", "string")
                     put("format", "date-time")
@@ -51,13 +58,6 @@ class QueryEventsByTimeTool @Inject constructor(
                     put(
                         "description",
                         "Optional end date-time of the query. Only events with recurrences before this timestamp will be returned."
-                    )
-                })
-                put("collectionId", buildJsonObject {
-                    put("type", "number")
-                    put(
-                        "description",
-                        "Optional ID of the calendar collection to query. Defaults to the user's default calendar. Use collections.list to discover available collections."
                     )
                 })
             },

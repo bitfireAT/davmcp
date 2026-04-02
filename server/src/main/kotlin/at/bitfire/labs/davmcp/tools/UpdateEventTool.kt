@@ -36,6 +36,13 @@ class UpdateEventTool @Inject constructor(
                 "Only the file name and field names to update/remove are known.",
         inputSchema = ToolSchema(
             properties = buildJsonObject {
+                put("collectionId", buildJsonObject {
+                    put("type", "number")
+                    put(
+                        "description",
+                        "Optional ID of the calendar collection the event belongs to. Defaults to the user's default calendar. Use collections.list to discover available collections."
+                    )
+                })
                 put("fileName", buildJsonObject {
                     put("type", "string")
                     put(
@@ -57,13 +64,6 @@ class UpdateEventTool @Inject constructor(
                             "Name of event field to delete. See eventDataToUpdate schema for valid field names."
                         )
                     })
-                })
-                put("collectionId", buildJsonObject {
-                    put("type", "number")
-                    put(
-                        "description",
-                        "Optional ID of the calendar collection the event belongs to. Defaults to the user's default calendar. Use collections.list to discover available collections."
-                    )
                 })
             },
             required = listOf("fileName", "eventDataToUpdate", "eventFieldsToRemove")

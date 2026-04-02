@@ -27,18 +27,18 @@ class DeleteEventTool @Inject constructor(
         description = "Deletes an event from the user's calendar.",
         inputSchema = ToolSchema(
             properties = buildJsonObject {
-                put("fileName", buildJsonObject {
-                    put("type", "string")
-                    put(
-                        "description",
-                        "File name of the event to be deleted, as returned by the `events.queryByTime` tool."
-                    )
-                })
                 put("collectionId", buildJsonObject {
                     put("type", "number")
                     put(
                         "description",
                         "Optional ID of the calendar collection the event belongs to. Defaults to the user's default calendar. Use collections.list to discover available collections."
+                    )
+                })
+                put("fileName", buildJsonObject {
+                    put("type", "string")
+                    put(
+                        "description",
+                        "File name of the event to be deleted, as returned by the `events.queryByTime` tool."
                     )
                 })
             },
