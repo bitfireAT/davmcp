@@ -52,7 +52,7 @@ class SetDefaultCalendarTool @Inject constructor(
         return CallToolResult(
             content = listOf(
                 TextContent(
-                    "Success. Default calendar set to collection ${input.collectionId}. " +
+                    "Success. Default calendar set to collection ID ${collection.id} (\"${collection.displayName}\"). " +
                             "This collection will now be used when no specific collection is specified in event operations."
                 )
             )
