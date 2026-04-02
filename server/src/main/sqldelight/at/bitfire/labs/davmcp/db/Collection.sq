@@ -11,6 +11,5 @@ getByService:
 SELECT * FROM collection WHERE serviceId=?;
 
 getByServiceAndId:
-SELECT c.* FROM collection c
-JOIN service s ON c.serviceId = s.id
-WHERE c.id = ?1 AND s.userId = ?2;
+SELECT * FROM collection
+WHERE serviceId = ?1 AND id = ?2;
