@@ -77,8 +77,8 @@ class DeleteEventTool @Inject constructor(
 
     @Serializable
     private data class InputData(
-        val fileName: String,
-        val collectionId: Long? = null
+        val collectionId: Long? = null,
+        val fileName: String
     )
 
 }

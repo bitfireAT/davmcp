@@ -129,9 +129,9 @@ class QueryEventsByTimeTool @Inject constructor(
 
     @Serializable
     data class InputData(
+        val collectionId: Long? = null,
         val start: String?,
-        val end: String?,
-        val collectionId: Long? = null
+        val end: String?
     )
 
     @Serializable

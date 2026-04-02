@@ -102,8 +102,8 @@ class AddEventTool @Inject constructor(
 
     @Serializable
     private data class InputData(
-        val eventData: SimpleEvent,
-        val collectionId: Long? = null
+        val collectionId: Long? = null,
+        val eventData: SimpleEvent
     )
 
 }

@@ -111,10 +111,10 @@ class UpdateEventTool @Inject constructor(
 
     @Serializable
     private data class InputData(
+        val collectionId: Long? = null,
         val fileName: String,
         val eventDataToUpdate: SimpleEvent,
-        val eventFieldsToRemove: List<String>,
-        val collectionId: Long? = null
+        val eventFieldsToRemove: List<String>
     )
 
 }

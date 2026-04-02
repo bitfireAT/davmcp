@@ -16,21 +16,28 @@ abstract class BaseMcpTool : McpTool {
     /**
      * Resolves the calendar collection to use for an operation.
      *
-     * If [collectionId] is provided, that specific collection is used.
-     * Otherwise, falls back to the service's configured default collection.
-     * Throws [IllegalStateException] if no collection can be resolved.
+     * Resolution order:
+     * 1. If [collectionId] is provided, that specific collection is used.
+     * 2. If the service has a [Service.defaultCollectionId] configured, that collection is used.
+     * 3. Otherwise, silently falls back to the first collection found for the service,
+     *    assuming it is the only one.
+     *
+     * @param database database instance used to query collections and services
+     * @param service the service whose collections are searched
+     * @param collectionId optional explicit collection ID requested by the caller
+     * @return the resolved [Collection]
+     * @throws IllegalArgumentException if [collectionId] is given but no matching collection exists
+     * @throws IllegalStateException if no collection exists for the service at all
      */
     protected fun resolveCollection(database: Database, service: Service, collectionId: Long?): Collection {
         if (collectionId != null)
             return database.collectionQueries.getById(collectionId).executeAsOneOrNull()
                 ?: throw IllegalArgumentException("Collection with id=$collectionId not found")
 
-        return database.serviceQueries.getDefaultCollection(service.id).executeAsOneOrNull()
-            ?: throw IllegalStateException(
-                "No default calendar configured for service id=${service.id}. " +
-                        "Use collections.list to find available calendars and set a default, " +
-                        "or pass a collectionId explicitly."
-            )
+        database.serviceQueries.getDefaultCollection(service.id).executeAsOneOrNull()?.let { return it }
+
+        return database.collectionQueries.getByService(service.id).executeAsList().firstOrNull()
+            ?: throw IllegalStateException("No calendar collection found for service id=${service.id}.")
     }
 
 
