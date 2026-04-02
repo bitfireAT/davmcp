@@ -17,7 +17,7 @@ WORKDIR /home/gradle/src
 RUN gradle fatJar --no-daemon
 
 # Stage 3: Create the Runtime Image
-FROM amazoncorretto:22 AS runtime
+FROM amazoncorretto:21-alpine AS runtime
 EXPOSE 3000
 RUN mkdir /app
 WORKDIR /app
