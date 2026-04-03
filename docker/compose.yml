@@ -1,6 +1,8 @@
 services:
   davx5-mcp:
-    build: .
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     ports:
       - 3000:3000
     volumes:

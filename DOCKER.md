@@ -2,7 +2,7 @@
 
 1. Build the docker image:
     ```shell
-    docker build -t davx5-mcp .
+    docker build -t davx5-mcp -f docker/Dockerfile .
     ```
 2. Start the container:
     ```shell
@@ -13,9 +13,9 @@
 
 1. Build the docker image:
     ```shell
-    docker compose build
+    docker compose -f docker/compose.yml build
     ```
 2. Start the container:
     ```shell
-    docker compose up
+    docker compose -f docker/compose.yml up
     ```
