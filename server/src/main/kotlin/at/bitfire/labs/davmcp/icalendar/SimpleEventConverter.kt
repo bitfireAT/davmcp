@@ -101,7 +101,7 @@ class SimpleEventConverter {
             "uid" -> setOf(Property.UID)
             "title" -> setOf(Property.SUMMARY)
             "startDateTime", "startDate" -> setOf(Property.DTSTART)
-            "endDateTime", "endDate" -> setOf(Property.DTEND, Property.SUMMARY)
+            "endDateTime", "endDate" -> setOf(Property.DTEND, Property.DURATION)
             "location" -> setOf(Property.LOCATION)
             "description" -> setOf(Property.DESCRIPTION)
             "consumesTime" -> setOf(Property.TRANSP)
