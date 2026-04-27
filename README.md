@@ -7,6 +7,8 @@ like "list events" or "create event". For you as a user of such a model, it mean
 language to manage your calendars**, for instance: "Add an event tomorrow from 12 am to 14 am: 'Some Appointment'",
 and the AI model can directly add the event to the calendar over CalDAV.
 
+The CalDAV server credentials stay in davmcp all the time and are not exposed to the AI model.
+
 The [Model Context Protocol](https://modelcontextprotocol.org/) is a protocol for AI agents to interact with external
 tools and services
 in a structured way.
@@ -80,6 +82,8 @@ These are the steps to manually compile and run davmcp. You can also [use Docker
 2. **Add CalDAV service and calendars**:
 
    ```bash
+   # Only use test accounts because davmcp is experimental.
+   # The service credentials are stored in davmcp and won't be exposed to the AI model.
    sqlite3 data/users.db "INSERT INTO service (userId, username, password, baseUrl) VALUES (1, 'your-caldav-username', 'your-caldav-password', 'https://caldav.example.com');"
    # first service now has service id=1
    
