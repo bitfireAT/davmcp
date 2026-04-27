@@ -131,6 +131,7 @@ class UpdateEventTool @Inject constructor(
                 structuredContent = McpJson.encodeToJsonElement(outputData).jsonObject
             )
         }
+    }
 
 
     @Serializable
@@ -141,12 +142,12 @@ class UpdateEventTool @Inject constructor(
         val eventFieldsToRemove: List<String>
     )
 
-        @Serializable
-        private data class OutputData(
-            val fileName: String,
-            val iCalendar: String,
-            val success: Boolean = true,
-            val message: String? = null
-        )
+    @Serializable
+    private data class OutputData(
+        val fileName: String,
+        val iCalendar: String,
+        val success: Boolean = true,
+        val message: String? = null
+    )
 
 }
