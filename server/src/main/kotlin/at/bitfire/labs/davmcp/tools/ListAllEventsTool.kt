@@ -1,29 +1,28 @@
 package at.bitfire.labs.davmcp.tools
 
 import at.bitfire.dav4jvm.ktor.DavResource
-import at.bitfire.dav4jvm.ktor.Response
 import at.bitfire.dav4jvm.property.caldav.CalDAV
-import at.bitfire.dav4jvm.property.caldav.CalendarData
 import at.bitfire.dav4jvm.property.webdav.WebDAV
 import at.bitfire.labs.davmcp.HttpClientBuilder
 import at.bitfire.labs.davmcp.db.Database
 import at.bitfire.labs.davmcp.db.User
-import at.bitfire.labs.davmcp.icalendar.SimpleEvent
-import at.bitfire.labs.davmcp.icalendar.SimpleEventConverter
-import at.bitfire.labs.davmcp.icalendar.simpleEventSchema
 import at.bitfire.labs.davmcp.json.McpJson
 import collectionIdSchema
+import eventListOutputSchema
 import io.ktor.http.*
 import io.modelcontextprotocol.kotlin.sdk.server.ClientConnection
 import io.modelcontextprotocol.kotlin.sdk.types.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonObject
 import javax.inject.Inject
 
 class ListAllEventsTool @Inject constructor(
     private val database: Database,
     private val httpClientBuilder: HttpClientBuilder,
-    private val simpleEventConverter: SimpleEventConverter
+    private val eventResponseHandler: EventResponseHandler
 ) : BaseMcpTool() {
 
     override fun tool() = Tool(
@@ -37,21 +36,7 @@ class ListAllEventsTool @Inject constructor(
         ),
         outputSchema = ToolSchema(
             properties = buildJsonObject {
-                put("events", buildJsonObject {
-                    put("type", "array")
-                    put("items", buildJsonObject {
-                        put("type", "object")
-                        put("properties", buildJsonObject {
-                            put("fileName", buildJsonObject {
-                                put("type", "string")
-                                put("description", "File name of the event (iCalendar)")
-                            })
-                            put("eventData", buildJsonObject {
-                                simpleEventSchema()
-                            })
-                        })
-                    })
-                })
+                eventListOutputSchema()
             },
             required = listOf("events")
         ),
@@ -74,18 +59,11 @@ class ListAllEventsTool @Inject constructor(
         httpClientBuilder.buildFromService(service).use { client ->
             val davResource = DavResource(client, collectionUrl)
 
-            val events = mutableListOf<EventWithName>()
+            val events = mutableListOf<EventResponseHandler.EventWithName>()
             davResource.propfind(1, WebDAV.GetETag, CalDAV.CalendarData) { response, relation ->
-                if (relation != Response.HrefRelation.MEMBER)
-                    return@propfind
-
-                val calendarData = response[CalendarData::class.java]?.iCalendar ?: return@propfind
-                val event = simpleEventConverter.fromICalendar(calendarData)
-                if (event != null)
-                    events += EventWithName(
-                        fileName = response.hrefName(),
-                        eventData = event
-                    )
+                val eventWithName = eventResponseHandler.processCalendarResponse(response, relation)
+                if (eventWithName != null)
+                    events += eventWithName
             }
             return CallToolResult(
                 content = listOf(TextContent(McpJson.encodeToString(events))),
@@ -102,14 +80,8 @@ class ListAllEventsTool @Inject constructor(
     )
 
     @Serializable
-    data class EventWithName(
-        val fileName: String,
-        val eventData: SimpleEvent
-    )
-
-    @Serializable
     data class OutputData(
-        val events: List<EventWithName>
+        val events: List<EventResponseHandler.EventWithName>
     )
 
 }

@@ -1,17 +1,13 @@
 package at.bitfire.labs.davmcp.tools
 
 import at.bitfire.dav4jvm.ktor.DavCalendar
-import at.bitfire.dav4jvm.ktor.Response
 import at.bitfire.dav4jvm.property.caldav.CalDAV
-import at.bitfire.dav4jvm.property.caldav.CalendarData
 import at.bitfire.labs.davmcp.HttpClientBuilder
 import at.bitfire.labs.davmcp.db.Database
 import at.bitfire.labs.davmcp.db.User
-import at.bitfire.labs.davmcp.icalendar.SimpleEvent
-import at.bitfire.labs.davmcp.icalendar.SimpleEventConverter
-import at.bitfire.labs.davmcp.icalendar.simpleEventSchema
 import at.bitfire.labs.davmcp.json.McpJson
 import collectionIdSchema
+import eventListOutputSchema
 import io.ktor.http.*
 import io.modelcontextprotocol.kotlin.sdk.server.ClientConnection
 import io.modelcontextprotocol.kotlin.sdk.types.*
@@ -24,7 +20,7 @@ import javax.inject.Inject
 class QueryEventsByTimeTool @Inject constructor(
     private val database: Database,
     private val httpClientBuilder: HttpClientBuilder,
-    private val simpleEventConverter: SimpleEventConverter
+    private val eventResponseHandler: EventResponseHandler
 ) : BaseMcpTool() {
 
     override fun tool() = Tool(
@@ -54,21 +50,7 @@ class QueryEventsByTimeTool @Inject constructor(
         ),
         outputSchema = ToolSchema(
             properties = buildJsonObject {
-                put("events", buildJsonObject {
-                    put("type", "array")
-                    put("items", buildJsonObject {
-                        put("type", "object")
-                        put("properties", buildJsonObject {
-                            put("fileName", buildJsonObject {
-                                put("type", "string")
-                                put("description", "File name of the event (iCalendar)")
-                            })
-                            put("eventData", buildJsonObject {
-                                simpleEventSchema()
-                            })
-                        })
-                    })
-                })
+                eventListOutputSchema()
             },
             required = listOf("events")
         ),
@@ -94,18 +76,11 @@ class QueryEventsByTimeTool @Inject constructor(
             val start: Instant? = input.start?.let { Instant.parse(it) }
             val end: Instant? = input.end?.let { Instant.parse(it) }
 
-            val events = mutableListOf<EventWithName>()
+            val events = mutableListOf<EventResponseHandler.EventWithName>()
             calendar.calendarQuery(Component.VEVENT, start, end, setOf(CalDAV.CalendarData)) { response, relation ->
-                if (relation != Response.HrefRelation.MEMBER)
-                    return@calendarQuery
-
-                val calendarData = response[CalendarData::class.java]?.iCalendar ?: return@calendarQuery
-                val event = simpleEventConverter.fromICalendar(calendarData)
-                if (event != null)
-                    events += EventWithName(
-                        fileName = response.hrefName(),
-                        eventData = event
-                    )
+                val eventWithName = eventResponseHandler.processCalendarResponse(response, relation)
+                if (eventWithName != null)
+                    events += eventWithName
             }
             return CallToolResult(
                 content = listOf(TextContent(McpJson.encodeToString(events))),
@@ -124,14 +99,8 @@ class QueryEventsByTimeTool @Inject constructor(
     )
 
     @Serializable
-    data class EventWithName(
-        val fileName: String,
-        val eventData: SimpleEvent
-    )
-
-    @Serializable
     data class OutputData(
-        val events: List<EventWithName>
+        val events: List<EventResponseHandler.EventWithName>
     ) {
 
     }
