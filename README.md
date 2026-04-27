@@ -2,6 +2,15 @@
 
 An experimental [Model Context Protocol (MCP)](https://modelcontextprotocol.org/) server for CalDAV access.
 
+It allows AI models to connect to CalDAV (in the future maybe also CardDAV and WebDAV) servers and run various queries
+like "list events" or "create event". For you as a user of such a model, it means that you can **use natural
+language to manage your calendars**, for instance: "Add an event tomorrow from 12 am to 14 am: 'Some Appointment'",
+and the AI model can directly add the event to the calendar over CalDAV.
+
+The [Model Context Protocol](https://modelcontextprotocol.org/) is a protocol for AI agents to interact with external
+tools and services
+in a structured way.
+
 ## ⚠️ Experimental Status
 
 > [!WARNING]
@@ -10,6 +19,8 @@ An experimental [Model Context Protocol (MCP)](https://modelcontextprotocol.org/
 
 > [!CAUTION]
 > Not intended for production use. Only use in test environments.
+
+There's no UI for configuration yet. You'll have to add database entries manually to make it work (see below).
 
 ## What it does
 
@@ -30,7 +41,7 @@ These are the steps to manually compile and run davmcp. You can also [use Docker
 
 1. Prepare the required environment: Currently only a JDK is needed. `sqlite3` or a similar tool is required to edit
    the database since there's no configuration UI (yet).
-2. Checkout or download davmcp.
+2. Check out or download davmcp.
 3. **Build the server**:
    ```bash
    cd server && ./gradlew build
@@ -41,29 +52,32 @@ These are the steps to manually compile and run davmcp. You can also [use Docker
    ```
    (Replace `3000` with your desired port)
 
-   The MCP path is `/mcp`, so you can access it at `http://localhost:3000/mcp` (or any other of your IP addresses
-   because the server listens on 0.0.0.0).
-
    Alternatively, you can build a fat JAR and run it with `java -jar <fat.jar>`.
 
    The server will start and listen for MCP connections on the specified port.
 
+   The MCP path is `/mcp`, so you can access it at `http://localhost:3000/mcp` (or any other of your IP addresses
+   because the server listens on 0.0.0.0).
+
    If that works, hit Ctrl+C to shut the server down. It should have created a database file named ``data/users.db``.
 
-5. **Add user and access token**:
+## Configuration
+
+1. **Add user and access token**:
 
    The AI that acts on your behalf has to authenticate against davmcp. You have to create a token for that
    in the database:
    ```bash
    sqlite3 data/users.db "INSERT INTO user (name, email) VALUES ('Your Name', 'your-email@example.com');"
    # first user has now user id=1
-   
-   sqlite3 data/users.db "INSERT INTO accessToken (userId, token) VALUES (1, '<random-user-token>');"
+
+   # use a random string for <your-access-token>   
+   sqlite3 data/users.db "INSERT INTO accessToken (userId, token) VALUES (1, '<your-access-token>');"
    ```
 
    That token is later required when you connect the AI to davmcp.
 
-6. **Add CalDAV service and calendars**:
+2. **Add CalDAV service and calendars**:
 
    ```bash
    sqlite3 data/users.db "INSERT INTO service (userId, username, password, baseUrl) VALUES (1, 'your-caldav-username', 'your-caldav-password', 'https://caldav.example.com');"
@@ -73,7 +87,7 @@ These are the steps to manually compile and run davmcp. You can also [use Docker
    sqlite3 data/users.db "INSERT INTO collection (serviceId, url, displayName) VALUES (1, 'https://caldav.example.com/calendars/user/calendar2', 'My Second Calendar');"
    ```
 
-7. **Add the MCP connection to your AI model.**
+3. **Add the MCP connection to your AI model.**
 
    How this step is done depends on the used environment. Look in the documentation of your AI environment for how to
    _add an MCP server_.
@@ -88,15 +102,14 @@ These are the steps to manually compile and run davmcp. You can also [use Docker
      in the model configuration. Again, set the authentication method to _token_ and provide your access token.
      Alternatively, add `Authentication: Bearer <your-access-token>` to the headers.
 
-8. Enable the MCP/tools for specific requests.
+4. Enable the MCP/tools for specific requests.
 
    You may have to enable the MCP or its tools when you send a request to the model. For instance, if you're using a
    remote model over a Web interface, you may need to click some "+" button and select the davmcp server to allow its
    usage in the request.
 
-## Configuration
+   Example request you can try: "Which events do I have in my calendar this week?"
 
-The server requires configuration for your CalDAV server. Refer to the code for available configuration options.
 
 ## Development
 
@@ -109,8 +122,3 @@ This project uses Gradle for dependency management and building:
 # Run tests
 ./gradlew test
 ```
-
-## About MCP
-
-The [Model Context Protocol](https://modelcontextprotocol.org/) is a protocol for AI agents to interact with external
-tools and services in a structured way.
