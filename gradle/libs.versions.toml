@@ -1,12 +1,12 @@
 [versions]
 kotlin = "2.4.0"
 ksp = "2.3.9"
-ktor = "3.5.0"
-dagger = "2.59.2"
+ktor = "3.5.1"
+dagger = "2.60"
 dav4jvm = "c63dd3b3f5"
 kotlinx-serialization = "1.11.0"
-ical4j = "4.2.5"
-mcp-kotlin-sdk = "0.13.0"
+ical4j = "4.3.0"
+mcp-kotlin-sdk = "0.14.0"
 sqldelight = "2.3.2"
 slf4j = "2.0.18"
 
