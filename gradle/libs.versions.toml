@@ -6,7 +6,7 @@ dagger = "2.60.1"
 dav4jvm = "c63dd3b3f5"
 kotlinx-serialization = "1.11.0"
 ical4j = "4.3.0"
-mcp-kotlin-sdk = "0.14.0"
+mcp-kotlin-sdk = "0.15.0"
 sqldelight = "2.3.2"
 slf4j = "2.0.18"
 
