@@ -8,7 +8,7 @@ kotlinx-serialization = "1.11.0"
 ical4j = "4.3.0"
 mcp-kotlin-sdk = "0.15.0"
 sqldelight = "2.3.2"
-slf4j = "2.0.18"
+slf4j = "2.0.19"
 
 [libraries]
 dav4jvm = { module = "com.github.bitfireat:dav4jvm", version.ref = "dav4jvm" }
